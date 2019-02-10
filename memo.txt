@@ -1,0 +1,16 @@
+Piece 클래스
+- white: 흑/백 여부
+- type: 말의 유형
+
+* 말의 유형
+왕(KING), 여왕(QUEEN), 비숍(BISHOP), 기사(KNIGHT), 룩(ROOK), 폰(PAWN)
+
+
+Cell 클래스
+- piece: 해당 셀에 어떤 말이 있는지
+- movable: 해당 셀에 이동가능 표시를 할지 말지
+- selected: 해당 셀이 선택되었는지 표시를 할지 말지
+
+Board 클래스
+- cells: Cell[][] cells
+- void cellClicked(int x, int y)
