@@ -35,8 +35,8 @@ public class ChessFrame extends JFrame implements ActionListener {
         setVisible(true);
     }
 
-    public void redraw(Cell[][] cells) {
-        chessBoard.redraw(cells);
+    public void redraw() {
+        chessBoard.redraw();
     }
 
     private void initDimensions() {

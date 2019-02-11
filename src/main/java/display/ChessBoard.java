@@ -17,16 +17,16 @@ public class ChessBoard extends Panel implements MouseListener {
     private static final Color[] colorMovable = { new Color(190, 190,167), new Color(93, 120, 66) };
 
     private Board board;
-    private Dimension cellDim;
-    private Dimension pieceDim;
-    private Dimension circleDim;
+    private Cell[][] cells;
+    private double cellSize;
+    private double circleSize;
 
     private Image imageBoard;
     private Map<String, Image> imagePiecies;
-    private Cell[][] cells;
 
     public ChessBoard(Board board) {
         this.board = board;
+        this.cells = board.getCells();
     }
 
     public void init() {
@@ -38,52 +38,41 @@ public class ChessBoard extends Panel implements MouseListener {
         addMouseListener(this);
     }
 
-    public void redraw(Cell[][] cells) {
-        this.cells = cells;
-
+    public void redraw() {
         revalidate();
         repaint();
     }
 
     private void initDimensions() {
-        cellDim = new Dimension();
-        cellDim.height = getHeight() / 8;
-        cellDim.width = cellDim.height;
-
-        pieceDim = new Dimension();
-        pieceDim.height = getHeight() / 8;
-        pieceDim.width = pieceDim.height;
-
-        circleDim = new Dimension();
-        circleDim.height = cellDim.height / 3;
-        circleDim.width = circleDim.height;
+        cellSize = getHeight() / 8.0;
+        circleSize = cellSize / 3.0;
     }
 
     private void drawSelected(Graphics graphics, int posX, int posY, Cell cell) {
         if(!cell.isSelected()) return;
 
-        int x = posX * cellDim.width;
-        int y = posY * cellDim.height;
+        int x = (int)(posX * cellSize);
+        int y = (int)(posY * cellSize);
         graphics.setColor(colorSelected[colorIndex(posX, posY)]);
-        graphics.fillRect(x, y, cellDim.width, cellDim.height);
+        graphics.fillRect(x, y, (int)cellSize + 1, (int)cellSize + 1);
     }
 
     private void drawMovable(Graphics graphics, int posX, int posY, Cell cell) {
         if(!cell.isMovable()) return;
 
-        int x = posX * cellDim.width + (cellDim.width/2 - circleDim.width/2);
-        int y = posY * cellDim.height + (cellDim.height/2 - circleDim.height/2);
+        int x = posX * (int)cellSize + ((int)cellSize/2 - (int)circleSize/2);
+        int y = posY * (int)cellSize + ((int)cellSize/2 - (int)circleSize/2);
         graphics.setColor(colorMovable[colorIndex(posX, posY)]);
-        graphics.fillOval(x, y, circleDim.width, circleDim.height);
+        graphics.fillOval(x, y, (int)circleSize, (int)circleSize);
     }
 
     private void drawPiece(Graphics graphics, int posX, int posY, Cell cell) {
         Piece piece = cell.getPiece();
         if(piece == null) return;
 
-        int x = posX * cellDim.width;
-        int y = posY * cellDim.height;
-        graphics.drawImage(getPieceImage(piece.isWhite(), piece.getType()), x, y, pieceDim.width, pieceDim.height, this);
+        int x = posX * (int)cellSize;
+        int y = posY * (int)cellSize;
+        graphics.drawImage(getPieceImage(piece.isWhite(), piece.getType()), x, y, (int)cellSize, (int)cellSize, this);
     }
 
     private Image getPieceImage(boolean white, int type) {
@@ -121,7 +110,7 @@ public class ChessBoard extends Panel implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent event) {
-        board.cellClicked(event.getX() / cellDim.width, event.getY() / cellDim.height);
+        board.cellClicked(event.getX() / (int)cellSize, event.getY() / (int)cellSize);
     }
 
     @Override
