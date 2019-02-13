@@ -21,11 +21,19 @@ public class Cell {
         this.selected = selected;
     }
 
+    public boolean getSelected() {
+        return selected;
+    }
+
     public boolean isMovable() {
         return movable;
     }
 
     public void setMovable(boolean movable) {
         this.movable = movable;
+    }
+
+    public boolean isEmpty() {
+        return getPiece() == null ? true : false;
     }
 }

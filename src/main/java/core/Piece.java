@@ -9,6 +9,7 @@ public class Piece {
     public static final int PAWN = 5;
 
     private boolean white;
+    private boolean oneTimesMove;
     private int type;
 
     public Piece(boolean white, int type) {
@@ -18,6 +19,14 @@ public class Piece {
 
     public boolean isWhite() {
         return white;
+    }
+
+    public void setOneTimesMove(boolean oneTimesMove) {
+        this.oneTimesMove = oneTimesMove;
+    }
+
+    public boolean isOneTimesMove() {
+        return oneTimesMove;
     }
 
     public int getType() {
