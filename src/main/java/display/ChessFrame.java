@@ -23,7 +23,7 @@ public class ChessFrame extends JFrame implements ActionListener {
     }
 
     public void init() {
-        setUndecorated(true);
+        //setUndecorated(true);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 

@@ -3,13 +3,9 @@ package core;
 import display.ChessFrame;
 
 public class Board {
-    public static final int NORTH = 0;
-    public static final int SOUTH = 1;
-    public static final int EAST = 2;
-    public static final int WEST = 3;
-
     private boolean whiteTurn = true;
     private Cell[][] cells;
+    private Cell selectedCell;
     private ChessFrame chessFrame;
 
     public void init() {
@@ -71,9 +67,16 @@ public class Board {
         cells[6][7].setPiece(new Piece(true, Piece.KNIGHT));
         cells[7][7].setPiece(new Piece(true, Piece.ROOK));
 
-        cells[5][3].setPiece(new Piece(false, Piece.BISHOP));
-        cells[7][4].setPiece(new Piece(true, Piece.ROOK));
-        cells[3][4].setPiece(new Piece(true, Piece.PAWN));
+        /*cells[5][3].setPiece(new Piece(true, Piece.KNIGHT));
+        cells[4][5].setPiece(new Piece(true, Piece.BISHOP));
+        cells[3][4].setPiece(new Piece(true, Piece.KING));
+        cells[4][3].setPiece(new Piece(true, Piece.QUEEN));
+        cells[2][5].setPiece(new Piece(true, Piece.PAWN));
+        cells[2][3].setPiece(new Piece(false, Piece.PAWN));
+
+        cells[0][7].setPiece(new Piece(true, Piece.KING));
+
+        cells[1][4].setPiece(new Piece(true, Piece.ROOK));*/
     }
 
     private void clearSelected(Cell[][] cells) {
@@ -92,105 +95,121 @@ public class Board {
         }
     }
 
-    //  (0) private으로 수정
-    //  (0) cell 객체는 불필요하니, piece 객체를 넘겨주도록 수정
-    public void markMovableCells(Cell cell, int x, int y) {
-        //  (0) cell.getPiece().PAWN -> Cell.PAWN 으로 수정
-        if(cell.getPiece().getType() == cell.getPiece().PAWN) markMovableCellsForPawn(cell, x, y);
-        else if(cell.getPiece().getType() == cell.getPiece().ROOK) markMovableCellsForRook(cell, x, y);
-        else if(cell.getPiece().getType() == cell.getPiece().BISHOP) markMovableCellsForBishop(cell, x, y);
-        //  (4) 퀸 구현
-        //  (5) 킹 구현
-        //  (6) 나이트 구현
+    private void markMovableCells(Piece piece, int x, int y) {
+        if(piece.getType() == Piece.PAWN) markMovableCellsForPawn(piece, x, y);
+        else if(piece.getType() == Piece.ROOK) markMovableCellsForRook(x, y);
+        else if(piece.getType() == Piece.BISHOP) markMovableCellsForBishop(x, y);
+        else if(piece.getType() == Piece.QUEEN) markMovableCellsForQueen(x, y);
+        else if(piece.getType() == Piece.KING) markMovableCellsForKing(x, y);
+        else if(piece.getType() == Piece.KNIGHT) markMovableCellsForKnight(x, y);
     }
 
-    //  (0) cell 객체는 불필요하니, piece 객체를 넘겨주도록 수정
-    private void markMovableCellsForPawn(Cell cell, int x, int y) {
-        int number = whiteTurn ? -1 : 1;
+    private void markMovableCellsForPawn(Piece piece, int posX, int posY) {
+        int offset = whiteTurn ? -1 : 1;
 
-        //  (2) 양쪽 대각선에 상대방 말이 있으면 이동가능함
-
-        if (cells[x][y + number].isEmpty()) {
-            cells[x][y + number].setMovable(true);
-
-            if(!cell.getPiece().isOneTimesMove()) {
-                //  (1) 이 자리에 말이 있으면 이동불가능함
-                cells[x][y + (2 * number)].setMovable(true);
-            }
-        }
+        if(!markMovableCell(posX, posY + offset)) return;
+        if(!piece.isMoved()) markMovableCell(posX, posY + (offset * 2));
     }
 
-    //  (0) cell 변수 사용되지 않으니 제거
-    private void markMovableCellsForRook(Cell cell, int posX, int posY) {
-        setMovableCellsForRook(posX, posY, SOUTH);
-        setMovableCellsForRook(posX, posY, NORTH);
-        setMovableCellsForRook(posX, posY, WEST);
-        setMovableCellsForRook(posX, posY, EAST);
-    }
+    private void markMovableCellsForRook(int posX, int posY) {
+        for(int y = posY - 1; ; y--) {
+            if(!markMovableCell(posX, y)) break;
+        }
 
-    private void setMovableCellsForRook(int posX, int posY, int direction) {
-        if(direction == SOUTH) {
-            for(int x = posX - 1; x >= 0; x--) {
-                //  (0) 이하 Cell 클래스의 isEmpty() 함수 사용하도록 수정
-                if (cells[x][posY].getPiece() != null) break;
-                cells[x][posY].setMovable(true);
-            }
+        for(int x = posX + 1; ; x++) {
+            if(!markMovableCell(x, posY)) break;
         }
-        else if(direction == NORTH) {
-            for(int x = posX + 1; x < 8; x++) {
-                if(cells[x][posY].getPiece() != null) break;
-                cells[x][posY].setMovable(true);
-            }
+
+        for(int y = posY + 1; ; y++) {
+            if(!markMovableCell(posX, y)) break;
         }
-        else if(direction == WEST) {
-            for(int y = posY - 1; y >= 0; y--) {
-                if(cells[posX][y].getPiece() != null) break;
-                cells[posX][y].setMovable(true);
-            }
-        }
-        else {
-            for(int y = posY + 1; y < 8; y++) {
-                if(cells[posX][y].getPiece() != null) break;
-                cells[posX][y].setMovable(true);
-            }
+
+        for(int x = posX - 1; ; x--) {
+            if(!markMovableCell(x, posY)) break;
         }
     }
 
-    //  (0) cell 변수 사용되지 않으니 제거
-    private void markMovableCellsForBishop(Cell cell, int posX, int posY) {
-        //  (3) 다른 말은 하나도 없게 한 다음, 비숍이 (4, 4)에 있는 경우 버그가 있음
-        for(int number = 1; number < 8; number++) {
-            int movabledX = posX + number;
-            int movabledY = posY + number;
-
-            if(movabledX > 7 || movabledY > 7) break;
-            if(cells[movabledX][movabledY].getPiece() != null) break;
-            cells[movabledX][movabledY].setMovable(true);
+    private void markMovableCellsForBishop(int posX, int posY) {
+        for(int x = posX + 1, y = posY - 1; ; x++, y--) {
+            if(!markMovableCell(x, y)) break;
         }
-        for(int number = 1; number < 8; number++) {
-            int movabledX = posX - number;
-            int movabledY = posY - number;
 
-            if(movabledX <= 0 || movabledY <= 0) break;
-            if(cells[movabledX][movabledY].getPiece() != null) break;
-            cells[movabledX][movabledY].setMovable(true);
+        for(int x = posX + 1, y = posY + 1; ; x++, y++) {
+            if(!markMovableCell(x, y)) break;
         }
-        for(int number = 1; number < 8; number++) {
-            int movabledX = posX - number;
-            int movabledY = posY + number;
 
-            if(movabledX <= 0 || movabledY > 7) break;
-            if(cells[movabledX][movabledY].getPiece() != null) break;
-            cells[movabledX][movabledY].setMovable(true);
+        for(int x = posX - 1, y = posY + 1; ; x--, y++) {
+            if(!markMovableCell(x, y)) break;
         }
-        for(int number = 1; number < 8; number++) {
-            int movabledX = posX + number;
-            int movabledY = posY - number;
 
-            if(movabledX > 7 || movabledY <= 0) break;
-            if(cells[movabledX][movabledY].getPiece() != null) break;
-            cells[movabledX][movabledY].setMovable(true);
+        for(int x = posX - 1, y = posY - 1; ; x--, y--) {
+            if(!markMovableCell(x, y)) break;
         }
+    }
+
+    private void markMovableCellsForQueen(int posX,int posY) {
+        markMovableCellsForRook(posX, posY);
+        markMovableCellsForBishop(posX, posY);
+    }
+
+    private void markMovableCellsForKing(int posX,int posY) {
+        markMovableCell(posX, posY  - 1);
+        markMovableCell(posX + 1, posY - 1);
+        markMovableCell(posX + 1, posY);
+        markMovableCell(posX + 1, posY + 1);
+        markMovableCell(posX, posY + 1);
+        markMovableCell(posX - 1, posY + 1);
+        markMovableCell(posX - 1, posY);
+        markMovableCell(posX - 1, posY - 1);
+    }
+
+    private void markMovableCellsForKnight(int posX, int posY) {
+        markMovableCell(posX + 1, posY - 2);
+        markMovableCell(posX + 2, posY - 1);
+        markMovableCell(posX + 2, posY + 1);
+        markMovableCell(posX + 1, posY + 2);
+        markMovableCell(posX - 1, posY + 2);
+        markMovableCell(posX - 2, posY + 1);
+        markMovableCell(posX - 2, posY - 1);
+        markMovableCell(posX - 2, posY - 1);
+        markMovableCell(posX - 1, posY - 2);
+    }
+
+    private boolean markMovableCell(int posX, int posY) {
+        if(isValidPosition(posX, posY)) {
+            if(cells[posX][posY].isEmpty()) {
+                cells[posX][posY].setMovable(true);
+                return true;
+            }
+            else if(existsOppositePiece(posX, posY)) cells[posX][posY].setMovable(true);
+        }
+
+        return false;
+    }
+
+    private boolean isValidPosition(int posX, int posY) {
+        return (posX>=0 && posX<8 && posY>=0 && posY<8);
+    }
+
+    private boolean existsOppositePiece(int posX, int posY) {
+        if(!isValidPosition(posX, posY) || cells[posX][posY].isEmpty()) return false;
+
+        return cells[posX][posY].getPiece().isWhite() == !whiteTurn;
+    }
+
+    private boolean move(Cell cell) {
+        if(cell.isMovable() && selectedCell != null) {
+            Piece selectedPiece = selectedCell.getPiece();
+            cell.setPiece(selectedPiece);
+            selectedPiece.setMoved(true);
+
+            selectedCell.setPiece(null);
+            selectedCell = null;
+            whiteTurn = !whiteTurn;
+            return true;
+        }
+
+        return false;
     }
 
     //  화면에 클릭 이벤트가 발생하면 호출됨
@@ -198,16 +217,23 @@ public class Board {
         Cell cell = cells[posX][posY];
         Piece piece = cell.getPiece();
 
-        //  (7) cell이 movable 표시가 되어 있다면, 현재 선택된 말을 이동시켜줌
+        if(move(cell)) {
+            clearSelected(cells);
+            clearMovabled(cells);
+            chessFrame.redraw();
+            return;
+        }
 
         if(piece == null) return;
-        if(piece.isWhite() != whiteTurn) return;
+        if(piece.isWhite() == !whiteTurn) return;
 
         clearSelected(cells);
         clearMovabled(cells);
         cell.setSelected(true);
-        markMovableCells(cell, posX, posY);
+        markMovableCells(piece, posX, posY);
         chessFrame.redraw();
+
+        selectedCell = cell;
     }
 
     public Cell[][] getCells() {
