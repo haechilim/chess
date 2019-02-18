@@ -6,6 +6,7 @@ public class Board {
     private boolean whiteTurn = true;
     private Cell[][] cells;
     private Cell selectedCell;
+    private Piece selectedPiece;
     private ChessFrame chessFrame;
 
     public void init() {
@@ -33,12 +34,12 @@ public class Board {
     //  모든 말(piece)을 최초 자리로 옮김
     private void resetPieces() {
         cells[0][0].setPiece(new Piece(false, Piece.ROOK));
-        //cells[1][0].setPiece(new Piece(false, Piece.KNIGHT));
-        //cells[2][0].setPiece(new Piece(false, Piece.BISHOP));
-        //cells[3][0].setPiece(new Piece(false, Piece.QUEEN));
+        cells[1][0].setPiece(new Piece(false, Piece.KNIGHT));
+        cells[2][0].setPiece(new Piece(false, Piece.BISHOP));
+        cells[3][0].setPiece(new Piece(false, Piece.QUEEN));
         cells[4][0].setPiece(new Piece(false, Piece.KING));
-        //cells[5][0].setPiece(new Piece(false, Piece.BISHOP));
-        //cells[6][0].setPiece(new Piece(false, Piece.KNIGHT));
+        cells[5][0].setPiece(new Piece(false, Piece.BISHOP));
+        cells[6][0].setPiece(new Piece(false, Piece.KNIGHT));
         cells[7][0].setPiece(new Piece(false, Piece.ROOK));
         cells[0][1].setPiece(new Piece(false, Piece.PAWN));
         cells[1][1].setPiece(new Piece(false, Piece.PAWN));
@@ -63,8 +64,8 @@ public class Board {
         cells[2][7].setPiece(new Piece(true, Piece.BISHOP));
         cells[3][7].setPiece(new Piece(true, Piece.QUEEN));
         cells[4][7].setPiece(new Piece(true, Piece.KING));
-        //cells[5][7].setPiece(new Piece(true, Piece.BISHOP));
-        //cells[6][7].setPiece(new Piece(true, Piece.KNIGHT));
+        cells[5][7].setPiece(new Piece(true, Piece.BISHOP));
+        cells[6][7].setPiece(new Piece(true, Piece.KNIGHT));
         cells[7][7].setPiece(new Piece(true, Piece.ROOK));
 
         /*cells[5][3].setPiece(new Piece(true, Piece.KNIGHT));
@@ -95,6 +96,32 @@ public class Board {
         }
     }
 
+    private void clearEnPassantable(Cell[][] cells) {
+        for(int x = 0; x < cells.length; x++) {
+            for(int y = 0; y < cells[x].length; y++) {
+                if(cells[x][y].getPiece() == null) continue;
+                Piece piece = cells[x][y].getPiece();
+                if(cells[x][y].getPiece().isWhite() == whiteTurn) piece.setEnPassantable(false);
+            }
+        }
+    }
+
+    private void clearCastling(int posY) {
+        cells[2][posY].setCastlingable(false);
+        cells[6][posY].setCastlingable(false);
+    }
+
+    private void clearEnPassant() {
+        for(int x = 0; x < cells.length; x++) {
+            for (int y = 0; y < cells[x].length; y++) {
+                if(cells[x][y].getPiece() == null) continue;
+                if(cells[x][y].getPiece().isWhite() == whiteTurn) {
+                    cells[x][y].getPiece().setEnPassantable(false);
+                }
+            }
+        }
+    }
+
     private void markMovableCells(Piece piece, int x, int y) {
         if(piece.getType() == Piece.PAWN) markMovableCellsForPawn(piece, x, y);
         else if(piece.getType() == Piece.ROOK) markMovableCellsForRook(x, y);
@@ -107,14 +134,19 @@ public class Board {
     private void markMovableCellsForPawn(Piece piece, int posX, int posY) {
         int offset = whiteTurn ? -1 : 1;
 
+        //  전진
         if(cells[posX][posY + offset].isEmpty()) {
             if (!markMovableCell(posX, posY + offset)) return;
             if (!piece.isMoved() && cells[posX][posY + (offset * 2)].isEmpty())
                 markMovableCell(posX, posY + (offset * 2));
         }
 
+        //  대각선 먹기
         if(existsOppositePiece(posX + 1, posY + offset)) markMovableCell(posX + 1, posY + offset);
         if(existsOppositePiece(posX - 1, posY + offset)) markMovableCell(posX - 1, posY + offset);
+
+        //  앙파상
+        MarkEnPassantCell(posX, posY);
     }
 
     private void markMovableCellsForRook(int posX, int posY) {
@@ -196,7 +228,7 @@ public class Board {
     }
 
     private boolean isValidPosition(int posX, int posY) {
-        return (posX>=0 && posX<8 && posY>=0 && posY<8);
+        return (posX >= 0 && posX < 8 && posY >= 0 && posY < 8);
     }
 
     private boolean existsOppositePiece(int posX, int posY) {
@@ -205,22 +237,8 @@ public class Board {
         return cells[posX][posY].getPiece().isWhite() == !whiteTurn;
     }
 
-    private boolean move(Cell cell) {
-        if(cell.isMovable() && selectedCell != null) {
-            Piece selectedPiece = selectedCell.getPiece();
-            cell.setPiece(selectedPiece);
-            selectedPiece.setMoved(true);
-
-            selectedCell.setPiece(null);
-            selectedCell = null;
-            whiteTurn = !whiteTurn;
-            return true;
-        }
-
-        return false;
-    }
-
     private void promotion(Piece piece, int posY) {
+        if(piece == null) return;
         if(piece.getType() == Piece.PAWN && (posY == 0 || posY == 7)) piece.setType(Piece.QUEEN);
     }
 
@@ -231,31 +249,88 @@ public class Board {
         Piece piece = cells[0][posY].getPiece();
         if(piece != null && !piece.isMoved()) {
             if(cells[1][posY].isEmpty() && cells[2][posY].isEmpty() && cells[3][posY].isEmpty()) cells[2][posY].setMovable(true);
+            cells[2][posY].setCastlingable(true);
         }
 
         piece = cells[7][posY].getPiece();
         if(piece != null && !piece.isMoved()) {
             if(cells[5][posY].isEmpty() && cells[6][posY].isEmpty()) cells[6][posY].setMovable(true);
+            cells[6][posY].setCastlingable(true);
         }
-
-        /*
-            실제 이동(룩도 같이)
-         */
     }
 
-    private void enPassant() {
-        /*
-            상대방 폰이 최초 두칸 이동한 바로 다음 턴에만 가능
+    private void moveCastling(Cell cell, int posX, int posY) {
+        if(cell.isCastlingable()) {
+            if(posX == 6 && cells[7][posY].getPiece().getType() == Piece.ROOK) {
+                cells[5][posY].setPiece(cells[7][posY].getPiece());
+                cells[7][posY].setPiece(null);
+            }
+            else if(posX == 2 && cells[0][posY].getPiece().getType() == Piece.ROOK) {
+                cells[3][posY].setPiece(cells[0][posY].getPiece());
+                cells[0][posY].setPiece(null);
+            }
+        }
 
-            1. Piece 클래스에서 enPassantable 멤버변수 추가
-            2. 매 턴마다 자기의 모든 폰의 enPassantable값을 false로 만듬
-            3. 어떤 말이 최초 두칸을 움직일때 enPassantable = true
-            4. 폰이 선택되어 있을때,
-                4-1. 좌측/우측 폰이 상대방 폰이고
-                4-2. 그 폰의 enPassantable값이 true인 경우
-                4-3. 그 지점에 동그라미 표시를 해줌
-            5. 상대방 말을 먹었을때 특별한 처리가 필요
-         */
+        clearCastling(posY);
+    }
+
+    private void MarkEnPassantCell(int posX, int posY) {
+        int offset = whiteTurn ? -1 : 1;
+
+        if(selectedPiece.getType() != Piece.PAWN) return;
+
+        if(isValidPosition(posX + 1, posY) && cells[posX + 1][posY].getPiece() != null) {
+            Piece piece = cells[posX + 1][posY].getPiece();
+
+            if(piece.getType() == Piece.PAWN && piece.isEnPassantable()) {
+                cells[posX + 1][posY + offset].setMovable(true);
+            }
+        }
+
+        if(isValidPosition(posX - 1, posY) && cells[posX - 1][posY].getPiece() != null) {
+            Piece piece = cells[posX - 1][posY].getPiece();
+
+            if(piece.getType() == Piece.PAWN && piece.isEnPassantable()) {
+                cells[posX - 1][posY + offset].setMovable(true);
+            }
+        }
+    }
+
+    private void makeEnPassantable(int posY) {
+        if(selectedPiece.getType() == Piece.PAWN && !selectedPiece.isMoved() && (posY == 3 || posY == 4)) {
+            selectedPiece.setEnPassantable(true);
+        }
+    }
+
+    private void moveEnPassant(Cell cell, int posX, int posY) {
+        int offset = whiteTurn ? 1 : -1;
+
+        if(cells[posX][posY + offset].getPiece() == null) return;
+
+        Piece piece = cells[posX][posY + offset].getPiece();
+
+        if(piece.getType() == Piece.PAWN && piece.isEnPassantable()) cells[posX][posY + offset].setPiece(null);
+    }
+
+    private boolean move(Cell cell, int posX, int posY) {
+        if(cell.isMovable() && selectedCell != null) {
+            Piece selectedPiece = selectedCell.getPiece();
+
+            if(selectedPiece.getType() == Piece.PAWN) {
+                makeEnPassantable(posY);
+                //moveEnPassant(cell, posX, posY);
+            }
+            cell.setPiece(selectedPiece);   //  클릭한 셀로 말 옮기기
+            moveCastling(cell, posX, posY); //  캐슬링으로 룩 옮기기
+            selectedPiece.setMoved(true);
+
+            selectedCell.setPiece(null);    //  이전 셀에 말 없애기
+            selectedCell = null;
+            whiteTurn = !whiteTurn;
+            return true;
+        }
+
+        return false;
     }
 
     //  화면에 클릭 이벤트가 발생하면 호출됨
@@ -263,10 +338,11 @@ public class Board {
         Cell cell = cells[posX][posY];
         Piece piece = cell.getPiece();
 
-        if(move(cell)) {
+        if(move(cell, posX, posY)) {
             clearSelected(cells);
             clearMovabled(cells);
             promotion(cell.getPiece(), posY);
+            clearEnPassantable(cells);
             chessFrame.redraw();
             return;
         }
@@ -274,13 +350,14 @@ public class Board {
         if(piece == null) return;
         if(piece.isWhite() == !whiteTurn) return;
 
+        selectedCell = cell;
+
         clearSelected(cells);
         clearMovabled(cells);
         cell.setSelected(true);
+        selectedPiece = cell.getPiece();
         markMovableCells(piece, posX, posY);
         chessFrame.redraw();
-
-        selectedCell = cell;
     }
 
     public Cell[][] getCells() {

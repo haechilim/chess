@@ -10,6 +10,7 @@ public class Piece {
 
     private boolean white;
     private boolean moved;
+    private boolean enPassantable;
     private int type;
 
     public Piece(boolean white, int type) {
@@ -27,6 +28,14 @@ public class Piece {
 
     public boolean isMoved() {
         return moved;
+    }
+
+    public void setEnPassantable(boolean enPassantable) {
+        this.enPassantable = enPassantable;
+    }
+
+    public boolean isEnPassantable() {
+        return enPassantable;
     }
 
     public void setType(int type) {

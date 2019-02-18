@@ -4,6 +4,7 @@ public class Cell {
     private Piece piece;
     private boolean selected;
     private boolean movable;
+    private boolean castlingable;
 
     public Piece getPiece() {
         return piece;
@@ -31,6 +32,14 @@ public class Cell {
 
     public void setMovable(boolean movable) {
         this.movable = movable;
+    }
+
+    public void setCastlingable(boolean castlingable) {
+        this.castlingable = castlingable;
+    }
+
+    public boolean isCastlingable() {
+        return castlingable;
     }
 
     public boolean isEmpty() {
