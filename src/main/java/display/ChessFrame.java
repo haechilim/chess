@@ -1,7 +1,6 @@
 package display;
 
 import core.Board;
-import core.Cell;
 
 import javax.swing.*;
 import java.awt.*;

@@ -21,6 +21,7 @@ public class ChessBoard extends Panel implements MouseListener {
     private double cellSize;
     private double circleSize;
 
+    private Image offscreen;
     private Image imageBoard;
     private Map<String, Image> imagePiecies;
 
@@ -39,6 +40,21 @@ public class ChessBoard extends Panel implements MouseListener {
     }
 
     public void redraw() {
+        if(offscreen == null) offscreen = createImage(getWidth(), getHeight());
+
+        Graphics graphics = offscreen.getGraphics();
+        graphics.drawImage(imageBoard, 0, 0, getWidth(), getHeight(), this);
+
+        if(cells == null) return;
+
+        for(int y=0; y<cells.length; y++) {
+            for(int x=0; x<cells[y].length; x++) {
+                drawSelected(graphics, x, y, cells[x][y]);
+                drawMovable(graphics, x, y, cells[x][y]);
+                drawPiece(graphics, x, y, cells[x][y]);
+            }
+        }
+
         revalidate();
         repaint();
     }
@@ -94,30 +110,25 @@ public class ChessBoard extends Panel implements MouseListener {
     }
 
     @Override
-    public void paint(Graphics graphics) {
-        graphics.drawImage(imageBoard, 0, 0, getWidth(), getHeight(), this);
-
-        if(cells == null) return;
-
-        for(int y=0; y<cells.length; y++) {
-            for(int x=0; x<cells[y].length; x++) {
-                drawSelected(graphics, x, y, cells[x][y]);
-                drawMovable(graphics, x, y, cells[x][y]);
-                drawPiece(graphics, x, y, cells[x][y]);
-            }
-        }
+    public void update(Graphics graphics) {
+        paint(graphics);
     }
 
     @Override
-    public void mouseClicked(MouseEvent event) {
-        board.cellClicked(event.getX() / (int)cellSize, event.getY() / (int)cellSize);
+    public void paint(Graphics graphics) {
+        graphics.drawImage(offscreen, 0, 0, getWidth(), getHeight(), this);
     }
 
     @Override
     public void mousePressed(MouseEvent event) {}
 
     @Override
-    public void mouseReleased(MouseEvent event) {}
+    public void mouseReleased(MouseEvent event) {
+        board.cellClicked(event.getX() / (int)cellSize, event.getY() / (int)cellSize);
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent event) {}
 
     @Override
     public void mouseEntered(MouseEvent event) {}
