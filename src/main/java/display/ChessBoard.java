@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ChessBoard extends Panel implements MouseListener {
-    private static final Toolkit toolkit = Toolkit.getDefaultToolkit();
     private static final String classpath = ChessBoard.class.getResource("/").getPath();
     private static final Color[] colorSelected = { new Color(246, 247, 128), new Color(187, 204, 59) };
     private static final Color[] colorMovable = { new Color(190, 190,167), new Color(93, 120, 66) };
@@ -32,7 +31,7 @@ public class ChessBoard extends Panel implements MouseListener {
 
     public void init() {
         imagePiecies = new HashMap<>();
-        imageBoard = toolkit.getImage(String.format("%s%s", classpath, "board.png"));
+        imageBoard = Util.loadImage(String.format("%s%s", classpath, "board.png"));
 
         setLayout(null);
         initDimensions();

@@ -3,13 +3,12 @@ package display;
 import java.awt.*;
 
 public class ChessPiece {
-    private static final Toolkit toolkit = Toolkit.getDefaultToolkit();
     private static final String classpath = ChessPiece.class.getResource("/").getPath();
     private static final String[] types = { "k", "q", "b", "n", "r", "p" };
 
     public static Image getPiece(boolean white, int type) {
         String path = String.format("%s%s.png", classpath, getKey(white, type));
-        return toolkit.getImage(path);
+        return Util.loadImage(path);
     }
 
     public static String getKey(boolean white, int type) {
