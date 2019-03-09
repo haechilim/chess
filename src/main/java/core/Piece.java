@@ -8,34 +8,33 @@ public class Piece {
     public static final int ROOK = 4;
     public static final int PAWN = 5;
 
-    private boolean white;
     private boolean moved;
-    private boolean enPassantable;
+    private boolean white;
+    private boolean enpassantable;
     private int type;
 
-    public Piece(boolean white, int type) {
+    public void setMoved(boolean moved) {
+        this.moved = moved;
+    }
+
+    public boolean isMoved(){
+        return moved;
+    }
+
+    public void setWhite(boolean white) {
         this.white = white;
-        this.type = type;
     }
 
     public boolean isWhite() {
         return white;
     }
 
-    public void setMoved(boolean moved) {
-        this.moved = moved;
+    public void setEnpassantable(boolean enpassantable) {
+        this.enpassantable = enpassantable;
     }
 
-    public boolean isMoved() {
-        return moved;
-    }
-
-    public void setEnPassantable(boolean enPassantable) {
-        this.enPassantable = enPassantable;
-    }
-
-    public boolean isEnPassantable() {
-        return enPassantable;
+    public boolean isEnpassantable() {
+        return enpassantable;
     }
 
     public void setType(int type) {

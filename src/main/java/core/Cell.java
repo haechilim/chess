@@ -14,24 +14,28 @@ public class Cell {
         this.piece = piece;
     }
 
+    public void setPiece(boolean white, int type) {
+        Piece piece = new Piece();
+        piece.setType(type);
+        piece.setWhite(white);
+
+        this.piece = piece;
+    }
+
+    public void setselected(boolean selected) {
+        this.selected = selected;
+    }
+
     public boolean isSelected() {
         return selected;
     }
 
-    public void setSelected(boolean selected) {
-        this.selected = selected;
-    }
-
-    public boolean getSelected() {
-        return selected;
+    public void setMovable(boolean movable) {
+        this.movable = movable;
     }
 
     public boolean isMovable() {
         return movable;
-    }
-
-    public void setMovable(boolean movable) {
-        this.movable = movable;
     }
 
     public void setCastlingable(boolean castlingable) {
@@ -42,7 +46,15 @@ public class Cell {
         return castlingable;
     }
 
-    public boolean isEmpty() {
-        return getPiece() == null ? true : false;
+    public void clearPiece() {
+        piece = null;
+    }
+
+    public boolean existsPiece() {
+        return piece != null;
+    }
+
+    public boolean existsOppositePiece(boolean whiteTurn) {
+        return (piece != null && piece.isWhite() != whiteTurn);
     }
 }
