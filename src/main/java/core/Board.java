@@ -65,18 +65,12 @@ public class Board {
     }
 
     private void markSelectedCell(Cell cell) {
-        if(cell.getPiece() == null) return;
-        if(cell.getPiece().isWhite() != whiteTurn) return;
-
         clearSelectedCell();
         cell.setselected(true);
         selectedCell = cell;
     }
 
     private void markMovable(Cell cell, int posX, int posY) {
-        if(cell.getPiece() == null) return;
-        if(cell.getPiece().isWhite() != whiteTurn) return;
-
         clearMovable(cells);
 
         switch(cell.getPiece().getType()) {
@@ -106,48 +100,55 @@ public class Board {
         }
     }
 
-    private void markMovablePawn(Cell cell, int posX, int posY) {
+    private void markMovablePawn(Cell selectedCell, int posX, int posY) {
         int offset = whiteTurn ? -1 : 1;
+        Cell cell, target;
 
-        if(cells[posX][posY + offset].getPiece() == null) {
-            cells[posX][posY + offset].setMovable(true);
+        {   // 전진
+            cell = getCell(posX, posY + offset);
 
-            if(!cell.getPiece().isMoved() && cells[posX][posY + offset * 2].getPiece() == null) {
-                cells[posX][posY + (offset * 2)].setMovable(true);
+            if(!cell.hasPiece()) {
+                cell.setMovable(true);
+
+                cell = getCell(posX, posY + offset * 2);
+                if(!selectedCell.getPiece().isMoved() && !cell.hasPiece()) cell.setMovable(true);
             }
         }
-        if(isValidIndex(posX + 1, posY + offset) && cells[posX + 1][posY + offset].existsOppositePiece(whiteTurn)) {
-            cells[posX + 1][posY + offset].setMovable(true);
+
+        {   // 대각선 먹기
+            cell = getCell(posX + 1, posY + offset);
+            if(hasEnemyPiece(cell)) cell.setMovable(true);
+
+            cell = getCell(posX - 1, posY + offset);
+            if(hasEnemyPiece(cell)) cell.setMovable(true);
         }
-        if(isValidIndex(posX - 1, posY + offset) && cells[posX - 1][posY + offset].existsOppositePiece(whiteTurn)) {
-            cells[posX - 1][posY + offset].setMovable(true);
-        }
-        if(isValidIndex(posX + 1, posY + offset) && cells[posX + 1][posY].existsPiece()
-                && cells[posX + 1][posY].getPiece().isEnpassantable()) {
-            cells[posX + 1][posY + offset].setMovable(true);
-        }
-        if(isValidIndex(posX - 1, posY + offset) && cells[posX - 1][posY].existsPiece()
-                && cells[posX - 1][posY].getPiece().isEnpassantable()) {
-            cells[posX - 1][posY + offset].setMovable(true);
+
+        {   // 앙파상 먹기
+            cell = getCell(posX + 1, posY + offset);
+            target = getCell(posX + 1, posY);
+            if(!hasPiece(cell) && isEnpassantable(target)) cell.setMovable(true);
+
+            cell = getCell(posX - 1, posY + offset);
+            target = getCell(posX - 1, posY);
+            if(!hasPiece(cell) && isEnpassantable(target)) cell.setMovable(true);
         }
     }
 
     private void markMovableRook(int posX, int posY) {
-        for(int number = 1;; number++) {
-            if(!markMovableCell(posX, posY + number)) break;
-            if(holdavle(posX, posY + number)) break;
+        for(int y = 1; ; y++) {
+            if(!markMovableCell(posX, posY + y)) break;
         }
-        for(int number = 1;; number++) {
-            if(!markMovableCell(posX, posY - number)) break;
-            if(holdavle(posX, posY - number)) break;
+
+        for(int y = 1; ; y++) {
+            if(!markMovableCell(posX, posY - y)) break;
         }
-        for(int number = 1;; number++) {
-            if(!markMovableCell(posX + number, posY)) break;
-            if(holdavle(posX + number, posY)) break;
+
+        for(int x = 1; ; x++) {
+            if(!markMovableCell(posX + x, posY)) break;
         }
-        for(int number = 1;; number++) {
-            if(!markMovableCell(posX - number, posY)) break;
-            if(holdavle(posX - number, posY)) break;
+
+        for(int x = 1; ; x++) {
+            if(!markMovableCell(posX - x, posY)) break;
         }
     }
 
@@ -163,21 +164,20 @@ public class Board {
     }
 
     private void markMovableBishop(int posX, int posY) {
-        for(int number = 1;; number++) {
-            if(!markMovableCell(posX + number, posY + number)) break;
-            if(holdavle(posX + number, posY + number)) break;
+        for(int n = 1; ; n++) {
+            if(!markMovableCell(posX + n, posY + n)) break;
         }
-        for(int number = 1;; number++) {
-            if(!markMovableCell(posX + number, posY - number)) break;
-            if(holdavle(posX + number, posY - number)) break;
+
+        for(int n = 1; ; n++) {
+            if(!markMovableCell(posX + n, posY - n)) break;
         }
-        for(int number = 1;; number++) {
-            if(!markMovableCell(posX - number, posY - number)) break;
-            if(holdavle(posX - number, posY - number)) break;
+
+        for(int n = 1; ; n++) {
+            if(!markMovableCell(posX - n, posY - n)) break;
         }
-        for(int number = 1;; number++) {
-            if(!markMovableCell(posX - number, posY + number)) break;
-            if(holdavle(posX - number, posY + number)) break;
+
+        for(int n = 1; ; n++) {
+            if(!markMovableCell(posX - n, posY + n)) break;
         }
     }
 
@@ -198,26 +198,14 @@ public class Board {
     }
 
     private boolean markMovableCell(int x, int y) {
-        if(isValidIndex(x, y) && movableCell(x, y)) {
-            cells[x][y].setMovable(true);
-            return true;
+        if(isValidIndex(x, y) && isMovableCell(x, y)) {
+            Cell cell = cells[x][y];
+            cell.setMovable(true);
+
+            return !cell.hasEnemyPiece(whiteTurn);
         }
 
         return false;
-    }
-
-    private boolean holdavle(int x, int y) {
-        if(isValidIndex(x, y) && cells[x][y].existsPiece()) {
-            return cells[x][y].getPiece().isWhite() != whiteTurn ? true : false;
-        }
-
-        return false;
-    }
-
-    private void promotion(Cell cell, int posY) {
-        if(cell.getPiece().getType() == Piece.PAWN && (posY == 0 || posY == 7)) {
-            cell.getPiece().setType(Piece.QUEEN);
-        }
     }
 
     private void markCastling(int posX, int posY) {
@@ -226,13 +214,13 @@ public class Board {
         Piece selectedPiece = selectedCell.getPiece();
 
         if(selectedPiece != null && selectedPiece.getType() == Piece.KING && !selectedPiece.isMoved()) {
-            if(cells[posX + 3][posY].existsPiece() && !cells[posX + 3][posY].getPiece().isMoved()) {
+            if(cells[posX + 3][posY].hasPiece() && !cells[posX + 3][posY].getPiece().isMoved()) {
                 if(cells[posX + 1][posY].getPiece() == null && cells[posX + 2][posY].getPiece() == null) {
                     cells[posX + 2][posY].setCastlingable(true);
                     cells[posX + 2][posY].setMovable(true);
                 }
             }
-            if(cells[posX - 4][posY].existsPiece() && !cells[posX - 4][posY].getPiece().isMoved()) {
+            if(cells[posX - 4][posY].hasPiece() && !cells[posX - 4][posY].getPiece().isMoved()) {
                 if(cells[posX - 1][posY].getPiece() == null && cells[posX - 2][posY].getPiece() == null && cells[posX - 3][posY].getPiece() == null) {
                     cells[posX - 2][posY].setCastlingable(true);
                     cells[posX - 2][posY].setMovable(true);
@@ -241,21 +229,17 @@ public class Board {
         }
     }
 
-    private void setEnpassantable(int posX) {
-        Piece piece = selectedCell.getPiece();
-
-        if(piece.getType() == Piece.PAWN && !piece.isMoved()) {
-            if(posX == 3 || posX == 4) {
-                piece.setEnpassantable(true);
-            }
+    private void promotion(Cell cell, int posY) {
+        if(cell.getPiece().getType() == Piece.PAWN && (posY == 0 || posY == 7)) {
+            cell.getPiece().setType(Piece.QUEEN);
         }
     }
 
     private boolean move(Cell cell, int posX, int posY) {
         if(cell.isMovable()) {
-            setEnpassantable(posX);
+            setEnpassantable(posY);
             moveRookForCastling(cell, posX, posY);
-            //moveEnpassant(posX, posY);
+            moveEnpassant(posX, posY);
             movePiece(selectedCell, cell);
             return true;
         }
@@ -273,11 +257,11 @@ public class Board {
     }
 
     private void moveEnpassant(int posX, int posY) {
-        int offset = whiteTurn ? -1 : 1;
+        int offset = whiteTurn ? 1 : -1;
 
         if(selectedCell.getPiece().getType() == Piece.PAWN) {
-            Cell cell = cells[posX][posY + offset];
-            if(cell.existsPiece() && cell.getPiece().isEnpassantable()) cell.clearPiece();
+            Cell target = cells[posX][posY + offset];
+            if(hasEnemyPiece(target) && target.getPiece().isEnpassantable()) target.clearPiece();
         }
     }
 
@@ -292,12 +276,19 @@ public class Board {
         cells[6][posY].setCastlingable(false);
     }
 
+    private void setEnpassantable(int posY) {
+        Piece piece = selectedCell.getPiece();
+
+        if(piece.getType() == Piece.PAWN && !piece.isMoved()) {
+            if(posY == 3 || posY == 4) piece.setEnpassantable(true);
+        }
+    }
+
     private void clearEnpassant() {
         for(int x = 0; x < cells.length; x++) {
             for(int y = 0; y < cells[x].length; y++) {
-                if(cells[x][y].existsPiece() && cells[x][y].getPiece().isWhite() == whiteTurn) {
-                    cells[x][y].getPiece().setEnpassantable(false);
-                }
+                Piece piece = cells[x][y].getPiece();
+                if(piece != null && piece.isWhite() == whiteTurn) piece.setEnpassantable(false);
             }
         }
     }
@@ -319,29 +310,47 @@ public class Board {
     }
 
     private boolean isValidIndex(int posX, int posY) {
-        return (posX < 8 && posX >= 0) && (posY < 8 && posY >= 0) ? true : false;
+        return (posX >= 0 && posX < 8) && (posY >= 0 && posY < 8) ? true : false;
     }
 
-    private boolean movableCell(int posX, int posY) {
-        Piece piece = cells[posX][posY].getPiece();
+    private boolean isMovableCell(int posX, int posY) {
+        Cell cell = cells[posX][posY];
+        return !cell.hasPiece() || cell.hasEnemyPiece(whiteTurn);
+    }
 
-        return piece == null || piece.isWhite() != whiteTurn ? true : false;
+    private boolean isEnpassantable(Cell cell) {
+        return hasEnemyPiece(cell) && cell.getPiece().isEnpassantable();
+    }
+
+    private boolean hasPiece(Cell cell) {
+        return cell != null && cell.hasPiece();
+    }
+
+    private boolean hasEnemyPiece(Cell cell) {
+        return cell != null && cell.hasEnemyPiece(whiteTurn);
+    }
+
+    private Cell getCell(int posX, int posY) {
+        return isValidIndex(posX, posY) ? cells[posX][posY] : null;
     }
 
     //  화면에 클릭 이벤트가 발생하면 호출됨
     public void cellClicked(int posX, int posY) {
         Cell cell = cells[posX][posY];
 
+        clearEnpassant();
+
         if(move(cell, posX, posY)) {
             promotion(cell, posY);
 
             clearMovable(cells);
             clearSelectedCell();
-            //clearEnpassant();
             whiteTurn = !whiteTurn;
             chessFrame.redraw();
             return;
         }
+
+        if(!cell.hasPiece() || cell.getPiece().isWhite() != whiteTurn) return;
 
         markSelectedCell(cell);
         markMovable(cell, posX, posY);

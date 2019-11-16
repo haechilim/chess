@@ -23,8 +23,8 @@ public class ChessFrame extends JFrame implements ActionListener {
 
     public void init() {
         setUndecorated(true);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-        //setBounds(0, 0, 1980, 800);
+        //setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setBounds(0, 0, 1980, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         getContentPane().setBackground(new Color(49, 46, 43));
@@ -43,7 +43,7 @@ public class ChessFrame extends JFrame implements ActionListener {
         Dimension screenDim = Toolkit.getDefaultToolkit().getScreenSize();
         frameDim = new Dimension(screenDim.width, screenDim.height - 60);
 
-        //frameDim.height -= 300;
+        frameDim.height -= 300;
 
         boardDim = new Dimension();
         boardDim.height = frameDim.height - 200;

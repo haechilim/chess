@@ -50,11 +50,11 @@ public class Cell {
         piece = null;
     }
 
-    public boolean existsPiece() {
+    public boolean hasPiece() {
         return piece != null;
     }
 
-    public boolean existsOppositePiece(boolean whiteTurn) {
+    public boolean hasEnemyPiece(boolean whiteTurn) {
         return (piece != null && piece.isWhite() != whiteTurn);
     }
 }
