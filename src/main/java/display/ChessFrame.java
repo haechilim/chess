@@ -22,9 +22,9 @@ public class ChessFrame extends JFrame implements ActionListener {
     }
 
     public void init() {
-        setUndecorated(true);
+        //setUndecorated(true);
         //setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setBounds(0, 0, 1980, 800);
+        setBounds(0, 0, 1000, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         getContentPane().setBackground(new Color(49, 46, 43));
@@ -42,18 +42,17 @@ public class ChessFrame extends JFrame implements ActionListener {
     private void initDimensions() {
         Dimension screenDim = Toolkit.getDefaultToolkit().getScreenSize();
         frameDim = new Dimension(screenDim.width, screenDim.height - 60);
-
-        frameDim.height -= 300;
+        frameDim = new Dimension(getWidth(), getHeight());
 
         boardDim = new Dimension();
-        boardDim.height = frameDim.height - 200;
+        boardDim.height = frameDim.height - 100;
         boardDim.width = boardDim.height;
     }
 
     private void makeComponents() {
         chessBoard = new ChessBoard(board);
         chessBoard.setBounds(frameDim.width/2 - boardDim.width/2,
-                frameDim.height/2 - boardDim.height/2,
+                frameDim.height/2 - boardDim.height/2 - 25,
                 boardDim.width, boardDim.height);
         chessBoard.init();
         add(chessBoard);
@@ -61,7 +60,7 @@ public class ChessFrame extends JFrame implements ActionListener {
         exit = new Button("Exit");
         exit.setBounds(frameDim.width - 100, 10, 90, 60);
         exit.addActionListener(this);
-        add(exit);
+        //add(exit);
     }
 
     @Override

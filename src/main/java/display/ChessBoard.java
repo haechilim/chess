@@ -7,11 +7,11 @@ import core.Piece;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ChessBoard extends Panel implements MouseListener {
-    private static final String classpath = ChessBoard.class.getResource("/").getPath();
     private static final Color[] colorSelected = { new Color(246, 247, 128), new Color(187, 204, 59) };
     private static final Color[] colorMovable = { new Color(190, 190,167), new Color(93, 120, 66) };
 
@@ -31,7 +31,7 @@ public class ChessBoard extends Panel implements MouseListener {
 
     public void init() {
         imagePiecies = new HashMap<>();
-        imageBoard = Util.loadImage(String.format("%s%s", classpath, "board.png"));
+        imageBoard = Util.loadImage(getClass().getClassLoader().getResource("board.png"));
 
         setLayout(null);
         initDimensions();
@@ -95,7 +95,8 @@ public class ChessBoard extends Panel implements MouseListener {
         Image image = imagePiecies.get(key);
 
         if(image == null) {
-            image = ChessPiece.getPiece(white, type);
+            String path = ChessPiece.getPiecePath(white, type);
+            image = Util.loadImage(getClass().getClassLoader().getResource(path));
             imagePiecies.put(key, image);
         }
 
